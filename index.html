@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0D0D0D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Diagnóstico Capilar — Freno Total</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0D0D0D;
+  --surface: #161616;
+  --surface2: #1F1F1F;
+  --surface3: #272727;
+  --gold: #C8973A;
+  --gold-lt: #E8BE6A;
+  --gold-dim: rgba(200,151,58,0.15);
+  --cream: #F0E8D8;
+  --muted: #666058;
+  --danger: #C04030;
+  --success: #3A8A50;
+  --warn: #B07020;
+  --text: #F0E8D8;
+  --text2: #A09888;
+  --text3: #605850;
+  --border: rgba(200,151,58,0.2);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── LAYOUT ── */
+.app{max-width:480px;margin:0 auto;padding:0 0 80px}
+
+/* ── HEADER ── */
+.header{
+  padding:20px 20px 0;
+  position:relative;
+}
+.header-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  font-family:'DM Serif Display',serif;
+  font-size:18px;color:var(--gold);letter-spacing:0.5px;
+}
+.logo span{color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;display:block;font-weight:300;margin-top:1px}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{padding:16px 20px 0}
+.progress-labels{display:flex;justify-content:space-between;margin-bottom:6px}
+.progress-labels span{font-size:11px;color:var(--text2)}
+.progress-labels strong{font-size:11px;color:var(--gold)}
+.progress-track{height:3px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-lt));border-radius:99px;transition:width 0.5s cubic-bezier(.4,0,.2,1)}
+
+/* ── SCREEN ── */
+.screen{display:none;animation:fadeUp 0.35s ease both}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── WELCOME ── */
+.welcome{padding:24px 20px}
+.welcome-hero{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:28px 22px;
+  text-align:center;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+.welcome-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:140px;height:140px;
+  background:radial-gradient(circle,rgba(200,151,58,0.12) 0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.hero-icon{
+  width:64px;height:64px;
+  background:var(--gold-dim);
+  border:1px solid var(--border);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  font-size:28px;
+}
+.hero-title{
+  font-family:'DM Serif Display',serif;
+  font-size:26px;line-height:1.25;
+  color:var(--cream);
+  margin-bottom:8px;
+}
+.hero-title em{color:var(--gold);font-style:normal}
+.hero-sub{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:20px}
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:20px}
+.pill{
+  font-size:11px;font-weight:500;
+  padding:4px 12px;
+  border-radius:99px;
+  border:1px solid var(--border);
+  color:var(--gold);
+  background:var(--gold-dim);
+}
+.btn-primary{
+  width:100%;
+  background:var(--gold);
+  color:#0D0D0D;
+  border:none;
+  border-radius:var(--radius-sm);
+  padding:16px;
+  font-size:15px;font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:all 0.2s;
+  letter-spacing:0.3px;
+}
+.btn-primary:hover{background:var(--gold-lt);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0);opacity:0.9}
+
+.info-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.info-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:14px 10px;
+  text-align:center;
+}
+.info-card .ic-num{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;color:var(--gold);
+  margin-bottom:2px;
+}
+.info-card .ic-lbl{font-size:10px;color:var(--text2);line-height:1.4}
+
+.disclaimer{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 16px;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.disclaimer .d-icon{font-size:16px;margin-top:1px;flex-shrink:0}
+.disclaimer p{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* ── QUESTIONS ── */
+.question-wrap{padding:20px 20px 0}
+.q-section-tag{
+  font-size:10px;font-weight:600;letter-spacing:2px;
+  color:var(--gold);text-transform:uppercase;
+  margin-bottom:6px;display:flex;align-items:center;gap:6px;
+}
+.q-section-tag::after{content:'';flex:1;height:1px;background:var(--border)}
+.q-text{
+  font-family:'DM Serif Display',serif;
+  font-size:20px;line-height:1.35;
+  color:var(--cream);
+  margin-bottom:6px;
+}
+.q-hint{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.5}
+
+/* Options */
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.option{
+  background:var(--surface);
+  border:1.5px solid var(--surface3);
+  border-radius:var(--radius-sm);
+  padding:14px 16px;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:flex;align-items:center;gap:12px;
+  position:relative;
+  overflow:hidden;
+}
+.option::before{
+  content:'';position:absolute;inset:0;
+  background:var(--gold-dim);
+  opacity:0;transition:opacity 0.2s;
+}
+.option:hover{border-color:var(--gold);transform:translateX(3px)}
+.option:hover::before{opacity:1}
+.option.selected{
+  border-color:var(--gold);
+  background:var(--surface2);
+}
+.option.selected::before{opacity:1}
+.option-check{
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.2s;
+  background:transparent;
+}
+.option.selected .option-check{
+  background:var(--gold);border-color:var(--gold);
+}
+.option.selected .option-check::after{content:'✓';font-size:12px;color:#0D0D0D;font-weight:700}
+.option-icon{font-size:20px;flex-shrink:0}
+.option-content{flex:1}
+.option-label{font-size:14px;font-weight:500;color:var(--text);line-height:1.3}
+.option-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* Multi select */
+.multi-hint{font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:500}
+
+/* Scale */
+.scale-wrap{margin-bottom:24px}
+.scale-labels{display:flex;justify-content:space-between;margin-bottom:12px}
+.scale-labels span{font-size:11px;color:var(--text2)}
+.scale-options{display:flex;gap:8px}
+.scale-btn{
+  flex:1;
+  background:var(--surface);
+  border:1.5px solid var(--surface3);
+  border-radius:8px;
+  padding:12px 4px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s;
+  color:var(--text2);
+  font-size:13px;font-weight:500;
+}
+.scale-btn:hover{border-color:var(--gold);color:var(--gold)}
+.scale-btn.selected{background:var(--gold);border-color:var(--gold);color:#0D0D0D;font-weight:700}
+
+/* Nav */
+.q-nav{
+  display:flex;gap:10px;
+  padding:0 20px 20px;
+}
+.btn-back{
+  flex:0 0 auto;
+  background:transparent;
+  border:1.5px solid var(--surface3);
+  border-radius:var(--radius-sm);
+  padding:14px 18px;
+  color:var(--text2);
+  font-size:14px;cursor:pointer;transition:all 0.2s;
+}
+.btn-back:hover{border-color:var(--muted);color:var(--text)}
+.btn-next{
+  flex:1;
+  background:var(--gold);
+  color:#0D0D0D;
+  border:none;
+  border-radius:var(--radius-sm);
+  padding:14px;
+  font-size:15px;font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;transition:all 0.2s;
+  opacity:0.4;pointer-events:none;
+}
+.btn-next.enabled{opacity:1;pointer-events:all}
+.btn-next.enabled:hover{background:var(--gold-lt)}
+.btn-next.enabled:active{opacity:0.9}
+
+/* ── LOADING ── */
+.loading-screen{
+  padding:60px 20px;
+  text-align:center;
+  display:none;
+}
+.loading-screen.active{display:block}
+.loader-ring{
+  width:72px;height:72px;
+  border:3px solid var(--surface3);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  margin:0 auto 24px;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-title{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;color:var(--cream);margin-bottom:8px;
+}
+.loader-steps{margin-top:20px;display:flex;flex-direction:column;gap:8px;text-align:left;max-width:280px;margin-left:auto;margin-right:auto}
+.loader-step{
+  display:flex;gap:10px;align-items:center;
+  font-size:13px;color:var(--text2);
+  opacity:0;animation:fadeUp 0.4s ease both;
+}
+.loader-step .ls-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
+
+/* ── RESULTS ── */
+.results{padding:20px}
+.results-header{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+  margin-bottom:16px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.results-header::before{
+  content:'';position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  width:200px;height:80px;
+  background:radial-gradient(ellipse,rgba(200,151,58,0.15) 0%,transparent 70%);
+}
+.results-tag{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--gold);margin-bottom:8px}
+.results-name{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;color:var(--cream);margin-bottom:4px;
+}
+.results-sub{font-size:13px;color:var(--text2);line-height:1.5}
+
+/* Risk score */
+.risk-score-wrap{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+  margin-bottom:16px;
+  text-align:center;
+}
+.risk-title{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+.risk-gauge{position:relative;width:160px;height:90px;margin:0 auto 12px}
+.risk-gauge canvas{display:block}
+.risk-number{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  font-family:'DM Serif Display',serif;
+  font-size:32px;color:var(--cream);
+}
+.risk-number span{font-size:14px;color:var(--text2);font-family:'DM Sans',sans-serif}
+.risk-label{
+  display:inline-block;
+  padding:4px 16px;border-radius:99px;
+  font-size:12px;font-weight:600;letter-spacing:0.5px;
+}
+.risk-low{background:rgba(58,138,80,0.2);color:#5CC070;border:1px solid rgba(58,138,80,0.3)}
+.risk-medium{background:rgba(176,112,32,0.2);color:#E0A040;border:1px solid rgba(176,112,32,0.3)}
+.risk-high{background:rgba(192,64,48,0.2);color:#E06050;border:1px solid rgba(192,64,48,0.3)}
+
+/* Radar chart */
+.radar-wrap{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:16px;
+}
+.section-title{
+  font-size:12px;font-weight:600;letter-spacing:1.5px;
+  color:var(--gold);text-transform:uppercase;
+  margin-bottom:14px;
+}
+.radar-chart-wrap{position:relative;height:240px}
+
+/* Area bars */
+.area-bars{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:16px;
+}
+.area-item{margin-bottom:14px}
+.area-item:last-child{margin-bottom:0}
+.area-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.area-name{font-size:13px;font-weight:500;color:var(--text)}
+.area-score{font-size:12px;font-weight:600;color:var(--gold)}
+.area-bar-track{height:6px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.area-bar-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(.4,0,.2,1) 0.3s}
+
+/* Causes */
+.causes-wrap{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:16px;
+}
+.cause-card{
+  background:var(--surface2);
+  border:1px solid var(--surface3);
+  border-radius:var(--radius-sm);
+  padding:14px;
+  margin-bottom:10px;
+  display:flex;gap:12px;align-items:flex-start;
+  position:relative;overflow:hidden;
+}
+.cause-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+}
+.cause-card.high::before{background:var(--danger)}
+.cause-card.medium::before{background:var(--warn)}
+.cause-card.low::before{background:var(--success)}
+.cause-rank{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+  margin-top:1px;
+}
+.cause-rank.r1{background:rgba(200,151,58,0.25);color:var(--gold-lt)}
+.cause-rank.r2{background:rgba(255,255,255,0.08);color:var(--text2)}
+.cause-rank.r3{background:rgba(255,255,255,0.05);color:var(--text3)}
+.cause-content{}
+.cause-name{font-size:14px;font-weight:500;color:var(--text);margin-bottom:3px}
+.cause-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.cause-badge{
+  margin-top:6px;
+  display:inline-block;
+  font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;
+}
+.badge-high{background:rgba(192,64,48,0.2);color:#E06050}
+.badge-medium{background:rgba(176,112,32,0.2);color:#E0A040}
+.badge-low{background:rgba(58,138,80,0.2);color:#5CC070}
+
+/* Actions */
+.actions-wrap{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:16px;
+}
+.action-item{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:12px 0;
+  border-bottom:1px solid var(--surface3);
+}
+.action-item:last-child{border-bottom:none;padding-bottom:0}
+.action-num{
+  width:26px;height:26px;
+  background:var(--gold-dim);
+  border:1px solid var(--border);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--gold);
+  flex-shrink:0;margin-top:1px;
+}
+.action-content{}
+.action-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.action-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.action-timing{
+  margin-top:4px;
+  font-size:10px;font-weight:600;
+  color:var(--gold);letter-spacing:0.5px;
+}
+
+/* Labs */
+.labs-wrap{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:16px;
+}
+.lab-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid var(--surface3);
+}
+.lab-item:last-child{border-bottom:none}
+.lab-name{font-size:13px;color:var(--text)}
+.lab-priority{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px}
+.lab-high{background:rgba(192,64,48,0.2);color:#E06050}
+.lab-medium{background:rgba(176,112,32,0.2);color:#E0A040}
+
+/* Share / CTA */
+.cta-wrap{
+  background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+  text-align:center;
+  margin-bottom:16px;
+}
+.cta-title{
+  font-family:'DM Serif Display',serif;
+  font-size:20px;color:var(--cream);margin-bottom:6px;
+}
+.cta-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5}
+.btn-share{
+  width:100%;
+  border:1.5px solid var(--gold);
+  border-radius:var(--radius-sm);
+  padding:14px;
+  font-size:14px;font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;transition:all 0.2s;
+  background:transparent;
+  color:var(--gold);
+  margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-share:hover{background:var(--gold-dim)}
+.btn-restart{
+  width:100%;
+  border:1.5px solid var(--surface3);
+  border-radius:var(--radius-sm);
+  padding:14px;
+  font-size:14px;font-weight:500;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;transition:all 0.2s;
+  background:transparent;
+  color:var(--text2);
+}
+.btn-restart:hover{border-color:var(--muted);color:var(--text)}
+
+/* Tooltip */
+.tooltip{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  background:var(--surface3);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:10px 18px;
+  font-size:13px;color:var(--text);
+  white-space:nowrap;
+  opacity:0;transition:opacity 0.3s;
+  pointer-events:none;z-index:999;
+}
+.tooltip.show{opacity:1}
+
+/* Responsive */
+@media(min-width:481px){
+  .app{border-left:1px solid var(--border);border-right:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-bar">
+    <div class="logo">Freno Total <span>Diagnóstico Capilar</span></div>
+    <div id="stepIndicator" style="font-size:12px;color:var(--text2);display:none"></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-labels">
+    <span id="progressLabel">Iniciando...</span>
+    <strong id="progressPct">0%</strong>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<!-- SCREEN: WELCOME -->
+<div class="screen active" id="screen-welcome">
+  <div class="welcome">
+    <div class="welcome-hero">
+      <div class="hero-icon">🔬</div>
+      <h1 class="hero-title">Tu diagnóstico capilar <em>personalizado</em></h1>
+      <p class="hero-sub">Responde 15 preguntas y descubre exactamente qué está causando tu caída del cabello y qué hacer al respecto.</p>
+      <div class="pill-row">
+        <span class="pill">🕑 3 minutos</span>
+        <span class="pill">♀ ♂ Para todos</span>
+        <span class="pill">📊 Resultado visual</span>
+      </div>
+      <button class="btn-primary" onclick="startQuiz()">Comenzar diagnóstico →</button>
+    </div>
+    <div class="info-cards">
+      <div class="info-card"><div class="ic-num">15</div><div class="ic-lbl">preguntas clave</div></div>
+      <div class="info-card"><div class="ic-num">6</div><div class="ic-lbl">áreas analizadas</div></div>
+      <div class="info-card"><div class="ic-num">100%</div><div class="ic-lbl">personalizado</div></div>
+    </div>
+    <div class="disclaimer">
+      <span class="d-icon">ℹ️</span>
+      <p>Este diagnóstico es orientativo y no sustituye una consulta médica. Si la caída es severa o viene acompañada de otros síntomas, consulta a un dermatólogo.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: QUESTION -->
+<div class="screen" id="screen-question">
+  <div class="question-wrap">
+    <div class="q-section-tag" id="qSectionTag"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-hint" id="qHint"></div>
+    <div id="qOptions"></div>
+  </div>
+  <div class="q-nav">
+    <button class="btn-back" onclick="goBack()">← Atrás</button>
+    <button class="btn-next" id="btnNext" onclick="goNext()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- SCREEN: LOADING -->
+<div class="loading-screen" id="screen-loading">
+  <div class="loader-ring"></div>
+  <div class="loader-title">Analizando tu perfil...</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:20px">Procesando tus respuestas</p>
+  <div class="loader-steps">
+    <div class="loader-step" style="animation-delay:0.3s"><div class="ls-dot"></div>Evaluando factores nutricionales</div>
+    <div class="loader-step" style="animation-delay:0.9s"><div class="ls-dot"></div>Analizando perfil hormonal</div>
+    <div class="loader-step" style="animation-delay:1.5s"><div class="ls-dot"></div>Revisando hábitos capilares</div>
+    <div class="loader-step" style="animation-delay:2.1s"><div class="ls-dot"></div>Calculando nivel de riesgo</div>
+    <div class="loader-step" style="animation-delay:2.7s"><div class="ls-dot"></div>Generando plan de acción</div>
+  </div>
+</div>
+
+<!-- SCREEN: RESULTS -->
+<div class="screen" id="screen-results">
+  <div class="results">
+
+    <div class="results-header">
+      <div class="results-tag">DIAGNÓSTICO COMPLETADO</div>
+      <div class="results-name" id="resName">Tu resultado</div>
+      <div class="results-sub" id="resSub"></div>
+    </div>
+
+    <div class="risk-score-wrap">
+      <div class="risk-title">ÍNDICE DE RIESGO CAPILAR</div>
+      <div class="risk-gauge">
+        <canvas id="gaugeChart" width="160" height="90"></canvas>
+        <div class="risk-number" id="riskNumber">0<span>/10</span></div>
+      </div>
+      <div class="risk-label" id="riskLabel"></div>
+    </div>
+
+    <div class="radar-wrap">
+      <div class="section-title">ANÁLISIS POR ÁREA</div>
+      <div class="radar-chart-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+
+    <div class="area-bars">
+      <div class="section-title">DETALLE DE RIESGOS</div>
+      <div id="areaBars"></div>
+    </div>
+
+    <div class="causes-wrap">
+      <div class="section-title">TUS 3 CAUSAS MÁS PROBABLES</div>
+      <div id="causesContent"></div>
+    </div>
+
+    <div class="actions-wrap">
+      <div class="section-title">PLAN DE ACCIÓN PRIORITARIO</div>
+      <div id="actionsContent"></div>
+    </div>
+
+    <div class="labs-wrap">
+      <div class="section-title">ANÁLISIS DE SANGRE RECOMENDADOS</div>
+      <div id="labsContent"></div>
+    </div>
+
+    <div class="cta-wrap">
+      <div class="cta-title">Comparte tu diagnóstico</div>
+      <div class="cta-sub">Guarda tu resultado para seguir tu progreso con Freno Total</div>
+      <button class="btn-share" onclick="shareResult()">📤 Compartir resultado</button>
+      <button class="btn-share" onclick="printResult()" style="margin-bottom:10px">🖨 Guardar como PDF</button>
+      <button class="btn-restart" onclick="restartQuiz()">Volver a hacer el diagnóstico</button>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /app -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// QUESTIONS DATA
+// ═══════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    id:'gender', section:'Perfil Personal', type:'single',
+    text:'¿Cuál es tu sexo biológico?',
+    hint:'Esto nos ayuda a considerar factores hormonales específicos.',
+    options:[
+      {icon:'♀️', label:'Mujer', sub:'Incluye factores como postparto, ciclo menstrual, menopausia', value:'F'},
+      {icon:'♂️', label:'Hombre', sub:'Incluye factores como DHT, alopecia androgenética', value:'M'},
+    ]
+  },
+  {
+    id:'age', section:'Perfil Personal', type:'single',
+    text:'¿En qué rango de edad estás?',
+    hint:'La edad influye en los patrones hormonales y el ciclo capilar.',
+    options:[
+      {icon:'🌱', label:'Menos de 25 años', value:'<25'},
+      {icon:'✨', label:'25 a 35 años', value:'25-35'},
+      {icon:'🌿', label:'36 a 50 años', value:'36-50'},
+      {icon:'🍂', label:'Más de 50 años', value:'>50'},
+    ]
+  },
+  {
+    id:'duration', section:'Perfil Personal', type:'single',
+    text:'¿Cuánto tiempo llevas notando la caída?',
+    hint:'La duración ayuda a distinguir una caída reactiva de una crónica.',
+    options:[
+      {icon:'⚡', label:'Menos de 1 mes', sub:'Inicio reciente', value:'<1m'},
+      {icon:'📅', label:'1 a 3 meses', sub:'Posiblemente reactiva', value:'1-3m'},
+      {icon:'📆', label:'3 a 6 meses', sub:'Subcrónica', value:'3-6m'},
+      {icon:'🗓', label:'Más de 6 meses', sub:'Crónica', value:'>6m'},
+    ]
+  },
+  {
+    id:'pattern', section:'Patrón de Caída', type:'single',
+    text:'¿Cómo está cayendo el cabello?',
+    hint:'El patrón de caída es uno de los indicadores más importantes.',
+    options:[
+      {icon:'🌀', label:'Difusa en todo el cuero cabelludo', sub:'Cae parejo en toda la cabeza', value:'diffuse'},
+      {icon:'👆', label:'Concentrada en coronilla o raya', sub:'Zona central o parte superior', value:'crown'},
+      {icon:'↔️', label:'En las entradas / línea frontal', sub:'Frente y sienes retroceden', value:'temples'},
+      {icon:'⭕', label:'En parches o zonas concretas', sub:'Zonas sin pelo circulares', value:'patches'},
+    ]
+  },
+  {
+    id:'stress', section:'Factores Internos', type:'scale',
+    text:'¿Cómo calificarías tu nivel de estrés en los últimos 3 meses?',
+    hint:'El estrés eleva el cortisol, que interrumpe el ciclo del folículo.',
+    scale:{min:1,max:10,lowLabel:'Sin estrés',highLabel:'Estrés extremo'},
+    area:'stress'
+  },
+  {
+    id:'sleep', section:'Factores Internos', type:'single',
+    text:'¿Cuántas horas duermes por noche en promedio?',
+    hint:'La privación de sueño eleva el cortisol y afecta la regeneración celular del folículo.',
+    options:[
+      {icon:'💤', label:'Menos de 5 horas', sub:'Privación severa', value:'<5', score:{sleep:9}},
+      {icon:'🌙', label:'5 a 6 horas', sub:'Insuficiente', value:'5-6', score:{sleep:6}},
+      {icon:'😴', label:'7 a 8 horas', sub:'Adecuado', value:'7-8', score:{sleep:2}},
+      {icon:'🛌', label:'Más de 8 horas', sub:'Óptimo', value:'>8', score:{sleep:1}},
+    ]
+  },
+  {
+    id:'nutrition', section:'Nutrición', type:'single',
+    text:'¿Cómo describirías tu alimentación habitual?',
+    hint:'El folículo piloso necesita hierro, zinc, proteínas y vitaminas para producir cabello sano.',
+    options:[
+      {icon:'🥗', label:'Variada y equilibrada', sub:'Proteínas, vegetales, frutas regularmente', value:'good', score:{nutrition:1}},
+      {icon:'⚠️', label:'Irregular o con restricciones', sub:'Dietas, saltos de comidas, pocas proteínas', value:'medium', score:{nutrition:5}},
+      {icon:'🍔', label:'Principalmente procesada', sub:'Poco valor nutricional', value:'bad', score:{nutrition:8}},
+      {icon:'🥩', label:'Dieta restrictiva (vegana, keto, etc.)', sub:'Puede generar deficiencias específicas', value:'restrictive', score:{nutrition:6}},
+    ]
+  },
+  {
+    id:'hormones', section:'Factores Hormonales', type:'multi',
+    text:'¿Alguno de estos aplica a tu situación actual o reciente?',
+    hint:'Selecciona todos los que correspondan. Pueden ser varios.',
+    options:[
+      {icon:'🤱', label:'Postparto (últimos 12 meses)', value:'postpartum', score:{hormones:8}},
+      {icon:'🔄', label:'Menopausia o perimenopausia', value:'menopause', score:{hormones:7}},
+      {icon:'💊', label:'Cambio reciente de anticonceptivos', value:'pill_change', score:{hormones:6}},
+      {icon:'🧬', label:'Diagnóstico de SOP o endometriosis', value:'pcos', score:{hormones:7}},
+      {icon:'⚗️', label:'Problema de tiroides (hipo/hipertiroidismo)', value:'thyroid', score:{hormones:9}},
+      {icon:'🙅', label:'Ninguno de los anteriores', value:'none', score:{hormones:0}},
+    ]
+  },
+  {
+    id:'scalp', section:'Cuero Cabelludo', type:'single',
+    text:'¿Cómo está tu cuero cabelludo actualmente?',
+    hint:'Un cuero cabelludo inflamado o con hongos no puede producir cabello sano.',
+    options:[
+      {icon:'✅', label:'Normal, sin molestias', value:'normal', score:{scalp:1}},
+      {icon:'❄️', label:'Con caspa o descamación', value:'dandruff', score:{scalp:6}},
+      {icon:'🔥', label:'Con picazón o irritación frecuente', value:'itch', score:{scalp:7}},
+      {icon:'💧', label:'Muy graso o con seborrea', value:'oily', score:{scalp:6}},
+      {icon:'🏜️', label:'Muy seco o tirante', value:'dry', score:{scalp:5}},
+    ]
+  },
+  {
+    id:'heat', section:'Hábitos Capilares', type:'single',
+    text:'¿Con qué frecuencia usas calor (secadora, plancha, rizador)?',
+    hint:'El calor excesivo debilita la cutícula y estresa el folículo acumulativamente.',
+    options:[
+      {icon:'❌', label:'Nunca o casi nunca', value:'never', score:{habits:0}},
+      {icon:'📅', label:'1 a 2 veces por semana', value:'low', score:{habits:2}},
+      {icon:'🔥', label:'3 a 4 veces por semana', value:'medium', score:{habits:5}},
+      {icon:'🌡️', label:'Todos los días', value:'daily', score:{habits:8}},
+    ]
+  },
+  {
+    id:'wash', section:'Hábitos Capilares', type:'single',
+    text:'¿Cómo lavas tu cabello habitualmente?',
+    hint:'La técnica de lavado es uno de los factores más ignorados en la caída.',
+    options:[
+      {icon:'✅', label:'Agua tibia + enjuague frío + sin frotar', sub:'Técnica correcta', value:'correct', score:{habits:0}},
+      {icon:'🔥', label:'Agua muy caliente', sub:'Debilita el folículo', value:'hot', score:{habits:4}},
+      {icon:'💪', label:'Froto fuerte con la toalla', sub:'Daño mecánico', value:'rub', score:{habits:5}},
+      {icon:'🪥', label:'Peino mojado con cepillo', sub:'Mayor rotura', value:'wet_brush', score:{habits:4}},
+    ]
+  },
+  {
+    id:'products', section:'Hábitos Capilares', type:'single',
+    text:'¿Cuántos productos usas actualmente en el cuero cabelludo?',
+    hint:'Demasiados productos sin orden claro pueden inflamar y obstruir el folículo.',
+    options:[
+      {icon:'1️⃣', label:'Solo shampoo y acondicionador', value:'basic', score:{habits:0}},
+      {icon:'3️⃣', label:'3 a 4 productos', value:'medium', score:{habits:3}},
+      {icon:'🧴', label:'Más de 5 productos', sub:'Posible sobrecarga', value:'many', score:{habits:6}},
+      {icon:'🔄', label:'Cambio de productos frecuentemente', sub:'Sin rutina fija', value:'change', score:{habits:7}},
+    ]
+  },
+  {
+    id:'family', section:'Historial', type:'single',
+    text:'¿Hay historial de calvicie o alopecia en tu familia?',
+    hint:'La alopecia androgenética tiene un componente hereditario importante.',
+    options:[
+      {icon:'✅', label:'No, ninguno', value:'none', score:{genetics:0}},
+      {icon:'👨‍👩‍👦', label:'Sí, por parte paterna', value:'father', score:{genetics:7}},
+      {icon:'👩‍👧', label:'Sí, por parte materna', value:'mother', score:{genetics:5}},
+      {icon:'👨‍👩‍👧‍👦', label:'Sí, ambas partes', value:'both', score:{genetics:9}},
+    ]
+  },
+  {
+    id:'previous', section:'Historial', type:'single',
+    text:'¿Has tenido alguna enfermedad, cirugía o período de fiebre alta en los últimos 6 meses?',
+    hint:'Los eventos físicos estresantes pueden desencadenar efluvio telógeno, que suele aparecer 2-3 meses después del evento.',
+    options:[
+      {icon:'✅', label:'No, ninguno', value:'none', score:{internal:0}},
+      {icon:'🤒', label:'Enfermedad viral o infección', sub:'Incluye COVID-19', value:'viral', score:{internal:8}},
+      {icon:'🏥', label:'Cirugía o procedimiento mayor', value:'surgery', score:{internal:7}},
+      {icon:'💊', label:'Cambio de medicación', sub:'Anticoagulantes, antidepresivos, etc.', value:'meds', score:{internal:6}},
+    ]
+  },
+  {
+    id:'tried', section:'Historial', type:'single',
+    text:'¿Qué has probado hasta ahora para la caída?',
+    hint:'Esto nos ayuda a entender tu punto de partida.',
+    options:[
+      {icon:'🙅', label:'Nada todavía', sub:'Estás en el punto de partida correcto', value:'nothing', score:{}},
+      {icon:'🧴', label:'Cambios de shampoo o productos', value:'shampoo', score:{}},
+      {icon:'💊', label:'Vitaminas y suplementos', value:'vitamins', score:{}},
+      {icon:'🌿', label:'Remedios caseros (romero, cebolla, etc.)', value:'home', score:{}},
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let currentQ = 0;
+let answers = {};
+let scores = {stress:0, nutrition:0, hormones:0, scalp:0, habits:0, genetics:0, internal:0, sleep:0};
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function startQuiz(){
+  showScreen('question');
+  document.getElementById('progressWrap').style.display='block';
+  document.getElementById('stepIndicator').style.display='block';
+  renderQuestion();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[currentQ];
+  const total = QUESTIONS.length;
+
+  // Progress
+  const pct = Math.round((currentQ/total)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressPct').textContent = pct+'%';
+  document.getElementById('progressLabel').textContent = q.section;
+  document.getElementById('stepIndicator').textContent = `${currentQ+1} / ${total}`;
+
+  // Question
+  document.getElementById('qSectionTag').textContent = q.section;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qHint').textContent = q.hint;
+
+  const container = document.getElementById('qOptions');
+  container.innerHTML='';
+
+  const btnNext = document.getElementById('btnNext');
+  btnNext.classList.remove('enabled');
+
+  if(q.type==='single'){
+    const wrap = document.createElement('div'); wrap.className='options';
+    q.options.forEach(opt=>{
+      const el = document.createElement('div');
+      el.className='option';
+      if(answers[q.id]===opt.value) el.classList.add('selected');
+      el.innerHTML=`
+        <div class="option-check"></div>
+        <div class="option-icon">${opt.icon}</div>
+        <div class="option-content">
+          <div class="option-label">${opt.label}</div>
+          ${opt.sub?`<div class="option-sub">${opt.sub}</div>`:''}
+        </div>`;
+      el.addEventListener('click',()=>{
+        wrap.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+        el.classList.add('selected');
+        answers[q.id] = opt.value;
+        if(opt.score){Object.assign(scores,Object.fromEntries(Object.entries(opt.score).map(([k,v])=>[k,v])))}
+        btnNext.classList.add('enabled');
+      });
+      wrap.appendChild(el);
+    });
+    container.appendChild(wrap);
+    if(answers[q.id]) btnNext.classList.add('enabled');
+  }
+
+  else if(q.type==='multi'){
+    const multi = document.createElement('div');
+    multi.innerHTML='<div class="multi-hint">Selecciona todos los que apliquen</div>';
+    const wrap = document.createElement('div'); wrap.className='options';
+    const sel = answers[q.id] || [];
+
+    q.options.forEach(opt=>{
+      const el = document.createElement('div');
+      el.className='option';
+      if(sel.includes(opt.value)) el.classList.add('selected');
+      el.innerHTML=`
+        <div class="option-check">${sel.includes(opt.value)?'':''}</div>
+        <div class="option-icon">${opt.icon}</div>
+        <div class="option-content">
+          <div class="option-label">${opt.label}</div>
+        </div>`;
+      el.addEventListener('click',()=>{
+        let current = answers[q.id]||[];
+        if(opt.value==='none'){
+          current=['none'];
+        } else {
+          current=current.filter(v=>v!=='none');
+          if(current.includes(opt.value)){
+            current=current.filter(v=>v!==opt.value);
+          } else {
+            current=[...current,opt.value];
+          }
+        }
+        answers[q.id]=current;
+        wrap.querySelectorAll('.option').forEach((o,i)=>{
+          if(current.includes(q.options[i].value)) o.classList.add('selected');
+          else o.classList.remove('selected');
+        });
+        // score
+        let hScore=0;
+        current.forEach(v=>{
+          const o=q.options.find(x=>x.value===v);
+          if(o&&o.score&&o.score.hormones) hScore=Math.max(hScore,o.score.hormones);
+        });
+        scores.hormones=hScore;
+        btnNext.classList.add('enabled');
+      });
+      wrap.appendChild(el);
+    });
+    if(sel.length>0) btnNext.classList.add('enabled');
+    multi.appendChild(wrap);
+    container.appendChild(multi);
+  }
+
+  else if(q.type==='scale'){
+    const wrap = document.createElement('div'); wrap.className='scale-wrap';
+    const labels = document.createElement('div'); labels.className='scale-labels';
+    labels.innerHTML=`<span>${q.scale.lowLabel}</span><span>${q.scale.highLabel}</span>`;
+    const btns = document.createElement('div'); btns.className='scale-options';
+
+    const saved = answers[q.id];
+    for(let i=1;i<=10;i++){
+      const b = document.createElement('div');
+      b.className='scale-btn'+(saved===i?' selected':'');
+      b.textContent=i;
+      b.addEventListener('click',()=>{
+        answers[q.id]=i;
+        scores.stress=i;
+        btns.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('selected'));
+        b.classList.add('selected');
+        btnNext.classList.add('enabled');
+      });
+      btns.appendChild(b);
+    }
+    wrap.appendChild(labels);
+    wrap.appendChild(btns);
+    container.appendChild(wrap);
+    if(saved) btnNext.classList.add('enabled');
+  }
+}
+
+function goNext(){
+  currentQ++;
+  if(currentQ>=QUESTIONS.length){
+    showLoading();
+  } else {
+    renderQuestion();
+  }
+}
+
+function goBack(){
+  if(currentQ===0){showScreen('welcome');document.getElementById('progressWrap').style.display='none';document.getElementById('stepIndicator').style.display='none';}
+  else{currentQ--;renderQuestion();}
+}
+
+// ═══════════════════════════════════════════════
+// LOADING → RESULTS
+// ═══════════════════════════════════════════════
+function showLoading(){
+  showScreen('loading');
+  document.getElementById('progressFill').style.width='100%';
+  document.getElementById('progressPct').textContent='100%';
+  setTimeout(()=>buildResults(), 3500);
+}
+
+// ═══════════════════════════════════════════════
+// SCORING ENGINE
+// ═══════════════════════════════════════════════
+function computeAreas(){
+  const gender = answers.gender;
+  const age = answers.age;
+
+  // Apply gender/age modifiers
+  let s = {...scores};
+
+  // hormonal boost for females in certain ages
+  if(gender==='F'){
+    const hormonalTriggers = answers.hormones||[];
+    if(age==='>50'||age==='36-50') s.hormones = Math.max(s.hormones, 4);
+    if(hormonalTriggers.includes('postpartum')) s.hormones = Math.max(s.hormones, 8);
+  }
+
+  // Duration modifier
+  if(answers.duration==='>6m') {s.genetics+=1; s.internal+=1;}
+
+  // Pattern modifiers
+  if(answers.pattern==='patches') s.internal+=2;
+  if(answers.pattern==='crown'||answers.pattern==='temples'){
+    if(gender==='M') s.genetics+=2;
+    else s.hormones+=2;
+  }
+
+  // Clamp to 10
+  Object.keys(s).forEach(k=>{s[k]=Math.min(10,Math.max(0,s[k]))});
+
+  // Map to 6 display areas
+  return {
+    'Nutrición':    Math.round(s.nutrition),
+    'Estrés':       Math.round(s.stress),
+    'Hormonas':     Math.round(s.hormones),
+    'Cuero cabelludo': Math.round(s.scalp),
+    'Hábitos':      Math.round(s.habits),
+    'Factores internos': Math.round(Math.max(s.genetics, s.internal)),
+  };
+}
+
+function overallRisk(areas){
+  const vals = Object.values(areas);
+  const weighted = vals.reduce((a,b)=>a+b,0) / vals.length;
+  return Math.round(weighted);
+}
+
+// ═══════════════════════════════════════════════
+// CAUSES ENGINE
+// ═══════════════════════════════════════════════
+function buildCauses(areas, gender){
+  const all = [
+    {
+      key:'hormones', area:'Hormonas', name:'Desbalance hormonal',
+      desc_F:'El ciclo hormonal femenino es una de las principales causas de caída. Postparto, menopausia, SOP o cambios en anticonceptivos pueden alterar estrógenos y andrógenos directamente.',
+      desc_M:'Los andrógenos, especialmente la DHT, atacan el folículo en hombres con predisposición genética acelerando su miniaturización.',
+      labs:['Estrógenos', 'Progesterona', 'Testosterona', 'Prolactina', 'DHEA', 'LH/FSH'],
+    },
+    {
+      key:'stress', area:'Estrés', name:'Estrés crónico y cortisol elevado',
+      desc_F:'El cortisol alto por estrés sostenido empuja más folículos a la fase de caída. Suele aparecer 2-3 meses después del período estresante.',
+      desc_M:'El cortisol crónico interrumpe el ciclo anágeno del folículo, acelerando la caída y pudiendo reactivar la alopecia androgenética.',
+      labs:['Cortisol en sangre (mañana)', 'DHEA-S'],
+    },
+    {
+      key:'nutrition', area:'Nutrición', name:'Deficiencias nutricionales',
+      desc_F:'Hierro bajo (ferritina) es la causa más común en mujeres. También zinc, vitamina D y B12 son críticos para el ciclo capilar.',
+      desc_M:'El zinc es clave para regular la DHT. El hierro y la vitamina D también afectan la calidad del folículo.',
+      labs:['Ferritina', 'Hierro sérico', 'Vitamina D3', 'Vitamina B12', 'Zinc', 'Hemograma'],
+    },
+    {
+      key:'thyroid', area:'Factores internos', name:'Disfunción tiroidea',
+      desc_F:'El hipotiroidismo es mucho más frecuente en mujeres y una de las causas más frecuentemente ignoradas de caída difusa masiva.',
+      desc_M:'Aunque menos frecuente, el hipotiroidismo masculino también puede causar caída difusa significativa.',
+      labs:['TSH', 'T3 libre', 'T4 libre', 'Anticuerpos anti-TPO'],
+    },
+    {
+      key:'scalp', area:'Cuero cabelludo', name:'Inflamación del cuero cabelludo',
+      desc_F:'La seborrea, la dermatitis o los hongos crean un entorno hostil para el folículo, impidiendo que produzca cabello sano.',
+      desc_M:'Los hombres con seborrea tienen mayor riesgo de alopecia combinada, ya que la inflamación potencia el efecto de la DHT.',
+      labs:['Cultivo fúngico (si hay sospecha de hongos)'],
+    },
+    {
+      key:'habits', area:'Hábitos', name:'Daño acumulativo por rutina',
+      desc_F:'El calor, los químicos, los peinados con tensión y el mal lavado generan daño mecánico y estrés oxidativo en el folículo.',
+      desc_M:'Aunque los hombres suelen tener rutinas más simples, el uso de gel, calor y lavados muy frecuentes también acumulan daño.',
+      labs:[],
+    },
+  ];
+
+  // Sort by area score, descending
+  const sorted = all.sort((a,b)=>{
+    const aScore = areas[a.area]||0;
+    const bScore = areas[b.area]||0;
+    return bScore - aScore;
+  });
+
+  return sorted.slice(0,3).map((c,i)=>{
+    const areaScore = areas[c.area]||0;
+    return {
+      ...c,
+      rank: i+1,
+      score: areaScore,
+      priority: areaScore>=7?'high':areaScore>=4?'medium':'low',
+      desc: gender==='F'?c.desc_F:c.desc_M,
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════
+// ACTIONS ENGINE
+// ═══════════════════════════════════════════════
+function buildActions(areas, causes, gender){
+  const actions = [];
+
+  // Always: masaje
+  actions.push({
+    title:'Masaje capilar diario (5 minutos)',
+    desc:'Con las yemas de los dedos, en movimientos circulares suaves. Mejora la microcirculación del folículo. Hazlo en seco, antes del lavado.',
+    timing:'Empezar hoy · Todos los días',
+  });
+
+  const topArea = Object.entries(areas).sort((a,b)=>b[1]-a[1])[0][0];
+
+  if(topArea==='Nutrición'||areas['Nutrición']>=5){
+    actions.push({
+      title:'Análisis de sangre: nutrición capilar',
+      desc:'Solicita ferritina, vitamina D, B12 y zinc. Sin saber tus niveles exactos, cualquier suplemento que tomes es una apuesta a ciegas.',
+      timing:'Esta semana',
+    });
+  }
+  if(topArea==='Hormonas'||areas['Hormonas']>=5){
+    actions.push({
+      title:'Consulta hormonal especializada',
+      desc:gender==='F'
+        ?'Solicita panel hormonal completo. Si estás en postparto o perimenopausia, es especialmente urgente.'
+        :'Solicita testosterona total, libre y DHT. La alopecia androgenética tiene tratamientos específicos efectivos.',
+      timing:'En los próximos 15 días',
+    });
+  }
+  if(areas['Cuero cabelludo']>=5){
+    actions.push({
+      title:'Trata la inflamación del cuero cabelludo',
+      desc:'Usa shampoo con piritionato de zinc o ketoconazol al 1-2%. Aplica solo en cuero cabelludo, deja actuar 3 minutos.',
+      timing:'Esta semana',
+    });
+  }
+  if(areas['Hábitos']>=4){
+    actions.push({
+      title:'Corrige tu rutina de lavado y secado',
+      desc:'Termina siempre con agua fría, seca sin fricción con camiseta de algodón y evita calor directo sobre el cuero cabelludo.',
+      timing:'Desde hoy',
+    });
+  }
+  if(areas['Estrés']>=6){
+    actions.push({
+      title:'Intervención en estrés crónico',
+      desc:'Prioriza 7-8h de sueño. Incorpora 15 minutos de movimiento físico moderado. El cortisol elevado es un agente activo de caída.',
+      timing:'Esta semana',
+    });
+  }
+  if(areas['Factores internos']>=6){
+    actions.push({
+      title:'Análisis de tiroides completo',
+      desc:'TSH, T3 libre y T4 libre. El hipotiroidismo es la causa más frecuentemente ignorada en caídas difusas masivas.',
+      timing:'Esta semana',
+    });
+  }
+
+  return actions.slice(0,5);
+}
+
+// ═══════════════════════════════════════════════
+// BUILD RESULTS
+// ═══════════════════════════════════════════════
+function buildResults(){
+  const gender = answers.gender||'F';
+  const areas = computeAreas();
+  const risk = overallRisk(areas);
+  const causes = buildCauses(areas, gender);
+  const actions = buildActions(areas, causes, gender);
+
+  // Header
+  const names = {
+    '<25':'joven adulto/a','25-35':'adulto/a joven','36-50':'adulto/a','>50':'adulto/a mayor'
+  };
+  document.getElementById('resName').textContent =
+    gender==='F' ? 'Diagnóstico Femenino Personalizado' : 'Diagnóstico Masculino Personalizado';
+  document.getElementById('resSub').textContent =
+    `Basado en ${QUESTIONS.length} respuestas · ${Object.keys(areas).length} áreas analizadas`;
+
+  // Gauge
+  buildGauge(risk);
+  const lbl = document.getElementById('riskLabel');
+  if(risk<=3){lbl.className='risk-label risk-low';lbl.textContent='Riesgo Bajo';}
+  else if(risk<=6){lbl.className='risk-label risk-medium';lbl.textContent='Riesgo Moderado';}
+  else{lbl.className='risk-label risk-high';lbl.textContent='Riesgo Alto';}
+
+  // Radar
+  buildRadar(areas);
+
+  // Area bars
+  const barsEl = document.getElementById('areaBars');
+  barsEl.innerHTML='';
+  const areaColors = {
+    'Nutrición':'#C8A040','Estrés':'#C04030','Hormonas':'#8060C0',
+    'Cuero cabelludo':'#3A7A8A','Hábitos':'#2A7A4A','Factores internos':'#B07020',
+  };
+  Object.entries(areas).forEach(([name,score])=>{
+    const color = areaColors[name]||'#C8A040';
+    barsEl.innerHTML+=`
+      <div class="area-item">
+        <div class="area-header">
+          <div class="area-name">${name}</div>
+          <div class="area-score">${score}/10</div>
+        </div>
+        <div class="area-bar-track">
+          <div class="area-bar-fill" style="width:${score*10}%;background:${color}"></div>
+        </div>
+      </div>`;
+  });
+
+  // Causes
+  const causesEl = document.getElementById('causesContent');
+  causesEl.innerHTML='';
+  causes.forEach(c=>{
+    const rankClass = ['r1','r2','r3'][c.rank-1];
+    const badgeClass = `badge-${c.priority}`;
+    const badgeLabel = c.priority==='high'?'Prioridad alta':c.priority==='medium'?'Prioridad media':'Prioridad baja';
+    const cardClass = c.priority;
+    causesEl.innerHTML+=`
+      <div class="cause-card ${cardClass}">
+        <div class="cause-rank ${rankClass}">#${c.rank}</div>
+        <div class="cause-content">
+          <div class="cause-name">${c.name}</div>
+          <div class="cause-desc">${c.desc}</div>
+          <span class="cause-badge ${badgeClass}">${badgeLabel}</span>
+        </div>
+      </div>`;
+  });
+
+  // Actions
+  const actionsEl = document.getElementById('actionsContent');
+  actionsEl.innerHTML='';
+  actions.forEach((a,i)=>{
+    actionsEl.innerHTML+=`
+      <div class="action-item">
+        <div class="action-num">${i+1}</div>
+        <div class="action-content">
+          <div class="action-title">${a.title}</div>
+          <div class="action-desc">${a.desc}</div>
+          <div class="action-timing">⏱ ${a.timing}</div>
+        </div>
+      </div>`;
+  });
+
+  // Labs
+  const labsEl = document.getElementById('labsContent');
+  labsEl.innerHTML='';
+  const allLabs = new Map();
+  causes.forEach((c,i)=>{
+    c.labs.forEach(l=>{
+      if(!allLabs.has(l)) allLabs.set(l, i===0?'high':i===1?'medium':'low');
+    });
+  });
+  // Always add ferritina if not present
+  if(!allLabs.has('Ferritina')) allLabs.set('Ferritina','medium');
+  if(!allLabs.has('TSH')) allLabs.set('TSH','medium');
+
+  allLabs.forEach((priority,lab)=>{
+    const cls = `lab-${priority}`;
+    const lbl = priority==='high'?'Urgente':'Recomendado';
+    labsEl.innerHTML+=`
+      <div class="lab-item">
+        <div class="lab-name">${lab}</div>
+        <span class="lab-priority ${cls}">${lbl}</span>
+      </div>`;
+  });
+
+  showScreen('results');
+}
+
+// ═══════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════
+let radarInstance = null;
+let gaugeInstance = null;
+
+function buildGauge(risk){
+  const ctx = document.getElementById('gaugeChart').getContext('2d');
+  if(gaugeInstance) gaugeInstance.destroy();
+
+  const pct = risk/10;
+  const color = risk<=3?'#3A8A50':risk<=6?'#B07020':'#C04030';
+
+  gaugeInstance = new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      datasets:[{
+        data:[pct, 1-pct],
+        backgroundColor:[color,'rgba(255,255,255,0.05)'],
+        borderWidth:0,
+        borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:false,
+      circumference:180,
+      rotation:-90,
+      cutout:'75%',
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      animation:{duration:1200,easing:'easeInOutQuart'},
+    }
+  });
+
+  // Animate number
+  let current=0;
+  const interval = setInterval(()=>{
+    current+=0.2;
+    if(current>=risk){current=risk;clearInterval(interval);}
+    document.getElementById('riskNumber').innerHTML=`${current.toFixed(1)}<span>/10</span>`;
+  },30);
+}
+
+function buildRadar(areas){
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  if(radarInstance) radarInstance.destroy();
+
+  radarInstance = new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels: Object.keys(areas),
+      datasets:[{
+        data: Object.values(areas),
+        fill:true,
+        backgroundColor:'rgba(200,151,58,0.15)',
+        borderColor:'rgba(200,151,58,0.8)',
+        borderWidth:2,
+        pointBackgroundColor:'#C8973A',
+        pointBorderColor:'transparent',
+        pointRadius:4,
+        pointHoverRadius:6,
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:'rgba(22,22,22,0.95)',
+        titleColor:'#E8BE6A',
+        bodyColor:'#A09888',
+        borderColor:'rgba(200,151,58,0.3)',
+        borderWidth:1,
+        padding:10,
+        callbacks:{label:c=>`  ${c.parsed.r}/10`}
+      }},
+      scales:{
+        r:{
+          min:0,max:10,
+          grid:{color:'rgba(255,255,255,0.06)'},
+          angleLines:{color:'rgba(255,255,255,0.06)'},
+          ticks:{display:false},
+          pointLabels:{
+            color:'#A09888',
+            font:{size:11,family:'DM Sans'},
+          }
+        }
+      },
+      animation:{duration:1000,easing:'easeInOutQuart'},
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function showTooltip(msg){
+  const t=document.getElementById('tooltip');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function shareResult(){
+  if(navigator.share){
+    navigator.share({title:'Mi Diagnóstico Capilar — Freno Total',text:'Hice mi diagnóstico capilar personalizado con Freno Total.',url:window.location.href});
+  } else {
+    navigator.clipboard.writeText(window.location.href);
+    showTooltip('🔗 Link copiado al portapapeles');
+  }
+}
+
+function printResult(){
+  window.print();
+}
+
+function restartQuiz(){
+  currentQ=0;answers={};
+  scores={stress:0,nutrition:0,hormones:0,scalp:0,habits:0,genetics:0,internal:0,sleep:0};
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('progressPct').textContent='0%';
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('stepIndicator').style.display='none';
+  showScreen('welcome');
+  if(radarInstance){radarInstance.destroy();radarInstance=null;}
+  if(gaugeInstance){gaugeInstance.destroy();gaugeInstance=null;}
+}
+
+// Print styles
+const printStyle = document.createElement('style');
+printStyle.textContent=`
+@media print{
+  body{background:#fff!important;color:#000!important}
+  .btn-primary,.btn-share,.btn-restart,.q-nav{display:none!important}
+  .app{max-width:100%!important}
+  :root{--bg:#fff;--surface:#f5f5f5;--surface2:#eeeeee;--surface3:#e0e0e0;--text:#111;--text2:#555;--text3:#888;--border:rgba(0,0,0,0.15)}
+}`;
+document.head.appendChild(printStyle);
+</script>
+</body>
+</html>
